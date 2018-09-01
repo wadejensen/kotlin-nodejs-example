@@ -20,14 +20,6 @@ Multi-module Gradle project.
 * ``frontend-js`` - application transpiled for frontend JavaScript, packed in [WebPack](https://webpack.js.org/), 
    it's only statically served by Node.js
   
-## Platform implementation specifics
-* prime number calculation is platform independent, single code shared for all platforms 
-* text output on screen is platform dependent 
-    * **Frontend JavaScript** - it adds elements in the DOM of HTML page to display primes
-    * **Node.js JavaScript** - uses `res.send()` to send primes as text in response to a web request
-
-_Note: Ordinary console output can be done by `println()` function from Kotlin Standard Library._
-
 ##  Compiling
 From the root of repo run `gradle build` or change directories to only build a specific subproject, eg.
 ```bash
@@ -38,8 +30,6 @@ gradle build
 ### Creating the Express app
 ```kt
 val shared = SharedClass(Console(), Math())
-val fetch = require("node-fetch")
-
 val app = Application()
 
 app.get("/primes") { _, _ ->
@@ -58,7 +48,57 @@ app.serveStaticContent(staticWebContentPath)
 println("Kotlin - Node.js webserver deployed and ready.")
 ```
 
+## Platform implementation specifics
+* prime number calculation is platform independent, single code shared for all platforms 
+* text output on screen is platform dependent 
+    * **Frontend JavaScript** - it adds elements in the DOM of HTML page to display primes
+    * **Node.js JavaScript** - uses `res.send()` to send primes as text in response to a web request
+
 ### Type safe use of Express in Node.js
+
+##### Simple HTTP GET call using async - await pattern inside an Express route handler. (Uses a coroutine wrapper of native JS `Promise`s)
+```kt
+app.get("/async-get") { _, res ->
+    println("Async get route pinged!")
+
+    async {
+        val resp: Response = await { fetch("https://jsonplaceholder.typicode.com/todos/1") }
+        val data: Any? = await { resp.json() }
+
+        data?.also { console.dir(data) }
+        res.send(JSON.stringify(data))
+    }
+}
+```
+##### HTTP POST call using async - await pattern inside an Express route handler. 
+Message body is passed as a Kotlin data class object
+Headers are passed as a Map<String, String>
+(Uses a coroutine wrapper of native JS `Promise`s)
+```kt
+app.get("/async-post") { _, res ->
+    println("async-post-data route pinging")
+
+    val wade = "{\"name\":\"Wade Jensen\", \"age\": 22, \"address\": {\"streetNum\": 123, \"streetName\": \"Fake street\", \"suburb\": \"Surry Hills\", \"postcode\": 2010}}"
+    val person: Person = JSON.parse<Person>(wade)
+    async {
+        val request = RequestInit(
+            method  = Method.POST,
+            headers = mapOf("username" to "wjensen", "password" to "1234567"),
+            body    = person)
+
+        println("Request object:")
+        console.dir(request)
+
+        val resp = await { fetch("https://jsonplaceholder.typicode.com/posts", request) }
+        val data: Any? = await { resp.json() }
+        data?.also {
+            println("Response object:")
+            console.dir(data)
+        }
+        res.send(JSON.stringify(data))
+    }
+}
+```
 
 ##### Parse JSON strings into Kotlin objects inside an Express route handler
 ```
@@ -80,62 +120,18 @@ app.get("/parse-json") { _, res ->
 ```
 ##### Simple HTTP GET call handled with native JS `Promise`s inside an Express route handler
 ```kt
-    app.get("/promise-get") { _, res ->
-        println("promise-get route pinged!")
+app.get("/promise-get") { _, res ->
+    println("promise-get route pinged!")
 
-        val resp: Promise<Response> = fetch("https://jsonplaceholder.typicode.com/todos/1")
-        resp
-            .then { result: Response -> result.json() }
-            .then { json -> JSON.stringify(json) }
-            .then { strResult ->
-                println(strResult)
-                res.send(strResult)
-            }
-    }
-
-```
-##### Simple HTTP GET call using async - await pattern inside an Express route handler. (Uses a coroutine wrapper of native JS `Promise`s)
-```kt
-    app.get("/async-get") { _, res ->
-        println("Async get route pinged!")
-
-        async {
-            val resp: Response = await { fetch("https://jsonplaceholder.typicode.com/todos/1") }
-            val data: Any? = await { resp.json() }
-
-            data?.also { console.dir(data) }
-            res.send(JSON.stringify(data))
+    val resp: Promise<Response> = fetch("https://jsonplaceholder.typicode.com/todos/1")
+    resp
+        .then { result: Response -> result.json() }
+        .then { json -> JSON.stringify(json) }
+        .then { strResult ->
+            println(strResult)
+            res.send(strResult)
         }
-    }
-```
-##### HTTP POST call using async - await pattern inside an Express route handler. 
-Message body is passed as a Kotlin data class object
-Headers are passed as a Map<String, String>
-(Uses a coroutine wrapper of native JS `Promise`s)
-```kt
-    app.get("/async-post") { _, res ->
-        println("async-post-data route pinging")
-
-        val wade = "{\"name\":\"Wade Jensen\", \"age\": 22, \"address\": {\"streetNum\": 123, \"streetName\": \"Fake street\", \"suburb\": \"Surry Hills\", \"postcode\": 2010}}"
-        val person: Person = JSON.parse<Person>(wade)
-        async {
-            val request = RequestInit(
-                method  = Method.POST,
-                headers = mapOf("username" to "wjensen", "password" to "1234567"),
-                body    = person)
-
-            println("Request object:")
-            console.dir(request)
-
-            val resp = await { fetch("https://jsonplaceholder.typicode.com/posts", request) }
-            val data: Any? = await { resp.json() }
-            data?.also {
-                println("Response object:")
-                console.dir(data)
-            }
-            res.send(JSON.stringify(data))
-        }
-    }
+}
 ```
 
 ### Hot reload
