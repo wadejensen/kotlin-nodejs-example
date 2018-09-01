@@ -21,7 +21,11 @@ Multi-module Gradle project.
    it's only statically served by Node.js
   
 ##  Compiling
-From the root of repo run `gradle build` or change directories to only build a specific subproject, eg.
+From the root of repo run: 
+```bash
+gradle build
+```
+ or change directories to only build a specific subproject, eg.
 ```bash
 cd backend
 gradle build
@@ -29,6 +33,8 @@ gradle build
 
 ### Creating the Express app
 ```kt
+import pappel.Application
+
 val shared = SharedClass(Console(), Math())
 val app = Application()
 
