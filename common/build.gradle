@@ -1,0 +1,9 @@
+// declares that the module need to compile in a platform independent way, ie. not use any JVM / JS / Android / Native
+// specific language features / libraries
+apply plugin: 'kotlin-platform-common'
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
+}

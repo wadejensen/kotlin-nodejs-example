@@ -1,0 +1,46 @@
+apply plugin: "com.moowork.node"
+apply plugin: "kotlin2js"
+
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:js-$kotlin_version"
+    compile project(':common-js')
+}
+
+repositories {
+    jcenter()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
+}
+
+compileKotlin2Js {
+    kotlinOptions.metaInfo = true
+    kotlinOptions.sourceMap = true
+    kotlinOptions.suppressWarnings = true
+    kotlinOptions.verbose = true
+    kotlinOptions.main = "call"
+    kotlinOptions.moduleKind = "umd"
+}
+
+def outputDir = "${projectDir}/node_modules"
+
+task assembleJs(type: Copy) {
+    configurations.compile.each { File file ->
+        from(zipTree(file.absolutePath), {
+            includeEmptyDirs = false
+            include { fileTreeElement ->
+                def path = fileTreeElement.path
+                path.endsWith(".js") && (path.startsWith("META-INF/resources/") ||
+                        !path.startsWith("META-INF/"))
+            }
+        })
+    }
+    from compileKotlin2Js.destinationDir
+    into "${outputDir}"
+    dependsOn classes
+}
+
+//task jar2Module(type: NodeTask) {
+//
+//}
+
+assemble.dependsOn assembleJs

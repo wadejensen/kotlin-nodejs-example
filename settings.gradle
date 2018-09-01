@@ -1,0 +1,6 @@
+include ':common'       // Module which contains platform independent logic and models
+include ':common-js'    // Module which contains js specific code
+// include 'common_jvm' // You could have a JVM specific module here
+// include 'android'    // You could have an Android specific module here
+include ':frontend-js'  // Module which contains code specific to js on the browser
+include ':backend-js'   // Module which contains code specific to js on node
