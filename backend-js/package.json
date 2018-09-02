@@ -2,9 +2,9 @@
   "name": "hello_js_node_app",
   "version": "0.0.1",
   "dependencies": {
-    "body-parser": "~1.17.1",
+    "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
-    "express": "^4.15.5",
+    "express": "^4.16.3",
     "kotlin": "~1.2.10",
     "node-fetch": "^2.2.0"
   }
