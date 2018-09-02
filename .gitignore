@@ -71,4 +71,6 @@ hs_err_pid*
 
 web/js/*
 
+frontend-js/src/main/web/app.bundle.js
+
 node_modules
