@@ -40,7 +40,7 @@ fun start() {
      *  Uses a Kotlin coroutine wrapper around native JS `Promise`s, to mimic the ES7 async - await pattern.
      */
     app.get("/async-get") { _, res ->
-        println("Async get route pinged!")
+        println("async-get route pinged!")
 
         async {
             val resp: Response = await { fetch("https://jsonplaceholder.typicode.com/todos/1") }
@@ -59,7 +59,7 @@ fun start() {
      *  Uses a Kotlin coroutine wrapper around native JS `Promise`s, to mimic the ES7 async - await pattern.
      */
     app.get("/async-post") { _, res ->
-        println("async-post route pinging")
+        println("async-post route pinged")
 
         val wade = "{\"name\":\"Wade Jensen\", \"age\": 22, \"address\": {\"streetNum\": 123, \"streetName\": \"Fake street\", \"suburb\": \"Surry Hills\", \"postcode\": 2010}}"
         val person: Person = JSON.parse<Person>(wade)
@@ -87,6 +87,7 @@ fun start() {
      *  in a text format back to the browser of the requester.
      */
     app.get("/parse-json") { _, res ->
+        println("parse-json route pinged")
 
         val data = "{\"name\":\"Wade Jensen\", \"age\": 22, \"address\": {\"streetNum\": 123, \"streetName\": \"Fake street\", \"suburb\": \"Surry Hills\", \"postcode\": 2010}}"
         println(data)
@@ -123,7 +124,7 @@ fun start() {
     app.startHttpServer(3000)
     val path = require("path")
 
-    val staticWebContentPath = path.join(__dirname, "../frontend-js/src/main/web") as String
+    val staticWebContentPath = path.join(__dirname, "../../frontend-js/src/main/web") as String
     println("Serving content from: $staticWebContentPath")
     app.serveStaticContent(staticWebContentPath)
 
