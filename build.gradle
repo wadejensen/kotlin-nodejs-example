@@ -3,6 +3,7 @@ buildscript {
 
     ext {
         kotlin_version = "1.2.60"
+        qunitVersion = "2.6.2"
         serialization_version = "0.6.1"
     }
 
@@ -29,5 +30,12 @@ allprojects {
         google()
         maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
         maven { url 'https://jitpack.io' }
+    }
+
+    tasks.withType(Test) {
+        testLogging {
+            showStandardStreams = true
+            events "passed", "failed"
+        }
     }
 }

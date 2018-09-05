@@ -3,8 +3,11 @@ apply plugin: "kotlin2js"
 
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-js:js-$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     compile project(':common-js')
+
+    testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+
 }
 
 repositories {
@@ -13,6 +16,15 @@ repositories {
 }
 
 compileKotlin2Js {
+    kotlinOptions.metaInfo = true
+    kotlinOptions.sourceMap = true
+    kotlinOptions.suppressWarnings = true
+    kotlinOptions.verbose = true
+    kotlinOptions.main = "call"
+    kotlinOptions.moduleKind = "umd"
+}
+
+compileTestKotlin2Js {
     kotlinOptions.metaInfo = true
     kotlinOptions.sourceMap = true
     kotlinOptions.suppressWarnings = true
@@ -44,3 +56,42 @@ task assembleJs(type: Copy) {
 //}
 
 assemble.dependsOn assembleJs
+
+
+//task populateNodeModules(type: Copy, dependsOn: compileKotlin2Js) {
+//    from compileKotlin2Js.destinationDir
+//
+//    configurations.testCompile.each {
+//        from zipTree(it.absolutePath).matching { include '*.js' }
+//    }
+//
+//    into "${buildDir}/node_modules"
+//}
+//
+////node {
+////    version = nodeVersion
+////    download = true
+////}
+//
+//task installQunit(type: NpmTask) {
+//    inputs.property('qunitVersion', qunitVersion)
+//    outputs.dir file('node_modules/qunit')
+//
+//    args = ['install', "qunit@${qunitVersion}"]
+//}
+//
+//task runQunit(type: NodeTask, dependsOn: [compileTestKotlin2Js, populateNodeModules, installQunit]) {
+//    script = file('node_modules/qunit/bin/qunit')
+//    args = [projectDir.toPath().relativize(file(compileTestKotlin2Js.outputFile).toPath())]
+//}
+//
+//test.dependsOn runQunit
+//
+//task sourcesJar(type: Jar) {
+//    classifier = 'sources'
+//    from sourceSets.main.kotlin
+//}
+//
+//artifacts {
+//    archives sourcesJar
+//}
