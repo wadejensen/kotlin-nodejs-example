@@ -1,6 +1,5 @@
 apply plugin: "com.moowork.node"
-apply plugin: 'org.jetbrains.kotlin.frontend'
-apply plugin: 'kotlin2js'
+apply plugin: "kotlin2js"
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
@@ -10,7 +9,10 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version" // for now only compile configuration is supported
 }
 
-def outputDir = "$projectDir.path/src/main/web"
+repositories {
+    jcenter()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
+}
 
 compileKotlin2Js {
     kotlinOptions.metaInfo = true
@@ -23,26 +25,61 @@ compileKotlin2Js {
 
 compileTestKotlin2Js {
     kotlinOptions.metaInfo = true
-    kotlinOptions.outputFile = "$project.buildDir.path/js-tests/${project.name}-tests.js"
     kotlinOptions.sourceMap = true
-    kotlinOptions.moduleKind = 'umd'
+    kotlinOptions.suppressWarnings = true
+    kotlinOptions.verbose = true
     kotlinOptions.main = "call"
+    kotlinOptions.moduleKind = "umd"
 }
 
+def outputDir = "${projectDir}/node_modules"
 
-task copyBundleToStaticDir(type: Copy) {
-    from "${project.buildDir.path}/bundle"
-    into "$outputDir"
-}
-
-kotlinFrontend {
-    webpackBundle {
-        bundleName = "app"
-        sourceMapEnabled = true  // enable/disable source maps
+task assembleJs(type: Copy) {
+    configurations.compile.each { File file ->
+        from(zipTree(file.absolutePath), {
+            includeEmptyDirs = false
+            include { fileTreeElement ->
+                def path = fileTreeElement.path
+                path.endsWith(".js") && (path.startsWith("META-INF/resources/") ||
+                        !path.startsWith("META-INF/"))
+            }
+        })
     }
+    from compileKotlin2Js.destinationDir
+    into "${outputDir}"
+    dependsOn classes
+
+    configurations.testCompile.each { File file ->
+        from(zipTree(file.absolutePath), {
+            includeEmptyDirs = false
+            include { fileTreeElement ->
+                def path = fileTreeElement.path
+                path.endsWith(".js") && (path.startsWith("META-INF/resources/") ||
+                        !path.startsWith("META-INF/"))
+            }
+        })
+    }
+    from compileTestKotlin2Js.destinationDir
+    into "${outputDir}"
+    dependsOn classes
+
 }
 
-assemble.dependsOn copyBundleToStaticDir
+assemble.dependsOn assembleJs
+
+task installQunit(type: NpmTask) {
+    inputs.property('qunitVersion', qunitVersion)
+    outputs.dir file('node_modules/qunit')
+
+    args = ['install', "qunit@${qunitVersion}"]
+}
+
+task runQunit(type: NodeTask, dependsOn: [compileTestKotlin2Js, assembleJs, installQunit]) {
+    script = file('node_modules/qunit/bin/qunit')
+    args = [projectDir.toPath().relativize(file(compileTestKotlin2Js.outputFile).toPath())]
+}
+
+test.dependsOn runQunit
 
 clean.doFirst() {
     delete "${outputDir}/app.bundle.js"

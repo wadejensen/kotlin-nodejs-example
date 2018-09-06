@@ -47,6 +47,4 @@ open class SharedClassTest {
         assertEquals("Hello Kotlin!", consoleAccumulator.substring(0..12))
         assertTrue(consoleAccumulator.contains(PLATFORM_INDEPENDENT))
     }
-
-
 }
